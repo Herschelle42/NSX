@@ -1,0 +1,33 @@
+#create auth header
+$base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(("{0}:{1}" -f $Credential.UserName,$Credential.GetNetworkCredential().Password)))
+$headers_NSX = @{"Authorization"=("Basic {0}" -f $base64AuthInfo)}
+
+$method = "GET"
+
+<#
+  Get the tags
+#>
+#https://$($nsxServer)/policy/api/v1/infra/tags?page_size=50&cursor=0&sort_by=tag&sort_ascending=true
+$uri_nsx_tags = "https://$($nsxServer)/policy/api/v1/infra/tags"
+
+$taglist_nsx = Invoke-RestMethod -Method $method -Uri $uri_nsx_tags -Headers $headers_NSX -SkipCertificateCheck
+$taglist_nsx.results.count  
+$taglist_nsx.results | Select scope, tag, tagged_objects_count | Get-Random -Count 10
+
+<#
+540
+
+scope                             tag                                                       tagged_objects_count
+-----                             ---                                                       --------------------
+external_id                       bfa9a4eb-8812-4360-91f6-b06324252f70                                         4
+dis:k8s:cluster.x-k8s.io/provider bootstrap-kubeadm                                                            4
+ncp/vnet_if_uid                   0bbc5a8d-5350-43c0-87aa-afbb2817c369                                         1
+ncp/project                       vmware-system-nsop                                                           2
+NLB-VIP_ID                        clusterip_2a89e6ee-b9fc-4f96-83df-e4a6693525a1_TCP_443                       1
+ncp/service                       vmware-system-psp-operator-webhook-service                                   2
+dis:k8s:name                      capi-kubeadm-control-plane-webhook                                           3
+ncp/vnet_uid                      a58bb3ad-64d9-467d-b24a-87a397fcc905                                         3
+ncp/service                       capi-kubeadm-bootstrap-controller-manager-metrics-service                    2
+ncp/vnet_if_uid                   bc31eccb-3ced-487a-81c1-e29ccc52895c                                         1
+#>
+
